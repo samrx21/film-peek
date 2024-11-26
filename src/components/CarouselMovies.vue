@@ -3,8 +3,8 @@
     <div class="flex transition-transform duration-500 h-full" :style="`transform: translateX(-${currentIndex * 100}%)`">
       <article v-for="movie in movies" :key="movie.id" class="w-full flex-shrink-0 h-full relative">
         <img :src="'https://image.tmdb.org/t/p/original/' + movie.backdrop_path" alt="" class="w-full h-full carousel__movie -z-10 relative" />
-        <div class="absolute top-44 left-32 z-40 p-4 text-white flex flex-col gap-3">
-          <h1 class="text-9xl sm:text-3xl lg:text-6xl font-bold text-white line-clamp-2 pb-1">
+        <div class="absolute top-40 left-32 z-40 p-4 text-white flex flex-col gap-3">
+          <h1 class="text-xl sm:text-3xl lg:text-6xl font-bold text-white line-clamp-2 pb-1">
             {{ movie.title }}
           </h1>
           <span class="flex items-center gap-1">
@@ -15,13 +15,13 @@
               {{ movie.release_date.split('-')[0] }}
             </span>
           </span>
-          <p class="w-5/6 inline-block">{{ movie.overview }}</p>
-          <ButtonPrimary label="Ver detalles" class="w-40 font-bold text-xl" @click="goToMovieDetails(movie.id)" />
+          <p class="w-4/6 line-clamp-6">{{ movie.overview }}</p>
+          <ButtonPrimary label="Ver detalles" class="w-44 font-bold text-xl mt-5" @click="goToMovieDetails(movie.id)" />
         </div>
       </article>
     </div>
-    <button @click="prev" class="absolute top-1/2 left-4 transform -translate-y-1/2 bg-gray-800 text-white p-2 rounded-full">&lt;</button>
-    <button @click="next" class="absolute top-1/2 right-4 transform -translate-y-1/2 bg-gray-800 text-white p-2 rounded-full">&gt;</button>
+    <button @click="prev" class="absolute top-1/2 left-4 transform -translate-y-1/2 text-white p-2 rounded-full"><i class="pi pi-angle-left" style="font-size: 3rem"></i></button>
+    <button @click="next" class="absolute top-1/2 right-4 transform -translate-y-1/2 text-white p-2 rounded-full"><i class="pi pi-angle-right" style="font-size: 3rem"></i></button>
   </section>
 </template>
 <script setup lang="ts">
@@ -31,6 +31,7 @@ import { roundToDecimal } from '@/utils/math'
 import Star from '@/assets/star.svg'
 import type { Movie } from '@/types'
 import { useRouter } from 'vue-router'
+import 'primeicons/primeicons.css'
 
 const props = defineProps<{
   movies: Movie[]

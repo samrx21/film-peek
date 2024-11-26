@@ -5,6 +5,7 @@ export interface OptionsApi extends AxiosRequestConfig {
   method: 'GET' | 'POST' | 'PUT' | 'DELETE'
   url: string
   params?: {}
+  body?: Object
 }
 
 export type ApiResponse<T> = {

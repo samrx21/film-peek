@@ -3,7 +3,7 @@
     <NavBar />
   </header>
   <main v-if="movie" class="mb-20">
-    <section class="w-full h-[90vh] relative z-0">
+    <section class="w-full h-[90vh] relative z-0 mb-20">
       <img :src="'https://image.tmdb.org/t/p/original/' + movie.backdrop_path" alt="" class="w-full h-[90vh] -z-10 blur-2xl" />
       <div class="flex absolute top-32 z-40 px-16 gap-24 w-full">
         <div class="flex flex-col gap-5">
@@ -34,9 +34,10 @@
             </div>
           </div>
           <div class="flex gap-4">
-            <ButtonPrimary label="Agregar a favoritos" icon="pi pi-heart" />
+            <ButtonPrimary label="Agregar a favoritos" icon="pi pi-heart" @click="updateFavorite(movie.id, true)" v-if="!favoriteStore.favorites.includes(movie.id)" />
+            <ButtonPrimary label="Eliminar de favoritos" icon="pi pi-heart-fill" @click="updateFavorite(movie.id, false)" v-else />
             <ButtonPrimary label="Agregar a ver más tarde" icon="pi pi-bookmark" />
-            <Button label="Califica esta película" icon="pi pi-star" outlined class="!text-ctmWht !border-ctmWht" />
+            <Button label="Califica esta película" icon="pi pi-star" outlined class="!text-white !border-white" />
           </div>
           <div>
             <div class="flex items-center gap-3">
@@ -56,12 +57,12 @@
                 <img width="48" height="48" src="https://img.icons8.com/color/48/imdb.png" alt="imdb" />
                 :
               </div>
-              <a :href="'https://www.imdb.com/title/' + movie.imdb_id" target="_blank" class="text-ctmWht underline">{{ movie.title }}</a>
+              <a :href="'https://www.imdb.com/title/' + movie.imdb_id" target="_blank" class="text-white underline">{{ movie.title }}</a>
             </div>
           </div>
           <div>
             <h3 class="text-xl md:text-xl font-bold mb-2">Descripción general</h3>
-            <p class="w-">{{ movie.overview }}</p>
+            <p>{{ movie.overview }}</p>
           </div>
         </div>
         <div class="max-w-[256px]">
@@ -108,34 +109,161 @@
         </swiper-container>
       </div>
     </section>
+    <section class="mx-14 mt-14 flex gap-8 flex-col">
+      <div>
+        <h3 class="text-3xl font-bold mb-3">Producción</h3>
+      </div>
+      <div>
+        <h3 class="text-2xl font-bold mb-3">Productoras</h3>
+        <ul class="w-full flex gap-5 justify-around bg-white py-5 rounded-md border-2 border-black">
+          <li v-for="company in movie.production_companies" :key="company.id" class="flex items-center gap-2">
+            <img v-if="company.logo_path" :src="'https://image.tmdb.org/t/p/original/' + company.logo_path" :alt="company.name" class="w-32 rounded-md" />
+            <span class="text-black" v-else>{{ company.name }}</span>
+          </li>
+        </ul>
+      </div>
+      <div class="flex justify-around mt-5">
+        <div class="flex flex-col gap-4">
+          <h3 class="text-6xl font-bold mb-3">Presupuesto</h3>
+          <p class="text-4xl flex">
+            {{ movie.budget ? formatCurrency(movie.budget) : 'NaN' }}
+          </p>
+        </div>
+        <div class="flex flex-col gap-4">
+          <h3 class="text-6xl font-bold mb-3">Recaudación</h3>
+          <p class="text-4xl flex gap-2">
+            {{ movie.revenue ? formatCurrency(movie.revenue) : 'NaN' }}
+          </p>
+        </div>
+      </div>
+    </section>
+    <section class="mx-14 mt-14 flex gap-8 flex-col">
+      <div>
+        <h3 class="text-3xl font-bold mb-3">Créditos</h3>
+      </div>
+      <div>
+        <h3 class="text-2xl font-bold mb-3">Elenco</h3>
+        <ul class="w-full flex gap-5 flex-wrap justify-center">
+          <template v-for="cast in movie.credits.cast" :key="cast.id">
+            <li class="flex flex-col items-center gap-2 max-w-32" v-if="cast.profile_path">
+              <img :src="'https://image.tmdb.org/t/p/original/' + cast.profile_path" :alt="cast.name" class="w-32 rounded-full object-cover" />
+              <span class="text-center">{{ cast.name }}</span>
+              <span class="text-center text-sm text-gray-500">{{ cast.character }}</span>
+            </li>
+          </template>
+          <template v-for="cast in movie.credits.cast" :key="cast.id">
+            <li class="flex flex-col items-center justify-center gap-2 max-w-32" v-if="!cast.profile_path">
+              <span class="text-center">{{ cast.name }}</span>
+              <span class="text-center text-sm text-gray-500">{{ cast.character }}</span>
+            </li>
+          </template>
+        </ul>
+      </div>
+      <div>
+        <h3 class="text-2xl font-bold mb-3">Equipo</h3>
+        <ul class="w-full flex gap-5 flex-wrap">
+          <template v-for="crew in movie.credits.crew" :key="crew.id">
+            <li class="flex flex-col items-center gap-2 max-w-32" v-if="crew.profile_path">
+              <img :src="'https://image.tmdb.org/t/p/original/' + crew.profile_path" :alt="crew.name" class="w-32 h-32 rounded-full object-cover" />
+              <span class="text-center">{{ crew.name }}</span>
+              <span class="text-center text-sm text-gray-500">{{ crew.job }}</span>
+            </li>
+          </template>
+        </ul>
+      </div>
+    </section>
+    <section class="mx-14 mt-14 flex gap-8 flex-col">
+      <MovieCategory :movies="movie.similar.results" title="Similares" />
+    </section>
+    <section class="mx-14 mt-14 flex gap-8 flex-col">
+      <div>
+        <h3 class="text-3xl font-bold mb-3">Reseñas</h3>
+      </div>
+      <div v-if="movie.reviews">
+        <ul class="w-full flex flex-col gap-5">
+          <li v-for="review in movie.reviews" :key="review.id" class="bg-white p-5 rounded-md shadow-md">
+            <div class="flex justify-between mb-3">
+              <div class="flex items-center gap-3 mb-3">
+                <img
+                  :src="review.author_details.avatar_path ? 'https://image.tmdb.org/t/p/original/' + review.author_details.avatar_path : 'https://via.placeholder.com/50'"
+                  alt="Avatar"
+                  class="w-12 h-12 rounded-full object-cover"
+                />
+                <div>
+                  <h4 class="text-xl font-bold text-black">{{ review.author }}</h4>
+                  <span class="text-sm text-gray-500">{{ new Date(review.created_at).toLocaleDateString() }}</span>
+                </div>
+              </div>
+              <div class="flex items-center">
+                <Star class="h-5" v-for="(star, index) in review.author_details.rating" :key="index" />
+              </div>
+            </div>
+
+            <p class="text-black">{{ review.content }}</p>
+          </li>
+        </ul>
+      </div>
+      <div v-else>
+        <p>No hay reseñas disponibles para esta película.</p>
+      </div>
+    </section>
   </main>
 </template>
 <script setup lang="ts">
 import { onMounted } from 'vue'
 import { useRoute } from 'vue-router'
 import { getMovieDetails } from '@/services/moviesApi'
+import { getFavoritesMovies } from '@/services/accountService'
 import type { MovieDetails, WatchProvider, WatchProviderDescription } from '@/types'
 import Star from '@/assets/star.svg'
 import ButtonPrimary from '@/components/ButtonPrimary.vue'
 import Button from 'primevue/button'
 import { roundToDecimal } from '@/utils/math'
 import { register } from 'swiper/element/bundle'
-import { ref } from 'vue'
+import { ref, watch } from 'vue'
+import MovieCategory from '@/components/MovieCategory.vue'
+import { handleFavorite } from '@/services/accountService'
+import { useFavoriteStore } from '@/stores/favoriteStore'
+
+// import 'primeicons/primeicons.css'
 
 const route = useRoute()
+const favoriteStore = useFavoriteStore()
 const movie = ref<MovieDetails>()
 //Registrar elementos de Swiper
 register()
 
-onMounted(async () => {
+async function loadMovieDetails() {
   let response = await getMovieDetails(route.params.id as string)
   if (response) {
     movie.value = response
     console.log('datails', movie.value)
 
     movie.value['watch/providers']
+
+    let responssss = await getFavoritesMovies()
+    console.log('responssss:', responssss)
+    console.log('Favorites:', favoriteStore.favorites)
   }
+}
+
+// Observar cambios en el parámetro `id` y volver a cargar los detalles
+watch(
+  () => route.params.id,
+  () => {
+    loadMovieDetails()
+    window.scrollTo({ top: 0, behavior: 'smooth' })
+  }
+)
+
+onMounted(async () => {
+  await loadMovieDetails()
 })
+
+async function updateFavorite(id: number, isFavorite: boolean) {
+  await handleFavorite('movie', id, isFavorite)
+  await getFavoritesMovies()
+}
 
 function filterProviders(providers: WatchProvider): WatchProviderDescription[] {
   if (!providers) return []
@@ -165,6 +293,13 @@ function filterProviders(providers: WatchProvider): WatchProviderDescription[] {
     })
   }
   return newProviders
+}
+
+function formatCurrency(value: number): string {
+  return new Intl.NumberFormat('en-US', {
+    style: 'currency',
+    currency: 'USD'
+  }).format(value)
 }
 </script>
 

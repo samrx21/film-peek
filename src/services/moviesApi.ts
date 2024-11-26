@@ -1,23 +1,13 @@
-import axios from 'axios'
-import type { OptionsApi, MovieApiResponse, MovieReviewApiResponse, MovieDetails } from '@/types'
-
-const apiKey = import.meta.env.VITE_TMDB_API_KEY as string
-
-const tmdb = axios.create({
-  baseURL: 'https://api.themoviedb.org/3',
-  headers: {
-    accept: 'application/json',
-    Authorization: `Bearer ${apiKey}`
-  }
-})
-
+import { tmdb, handleApiError } from '@/services/tmdbService'
+import type { OptionsApi, MovieReviewApiResponse, MovieDetails } from '@/types'
+import { getMoviesFromTMDB } from '@/services/tmdbService'
 export async function getPopularMovies() {
   const options: OptionsApi = {
     method: 'GET',
     url: '/movie/popular',
     params: { language: 'es-ES', page: '1' }
   }
-  return await getFromTMDB(options)
+  return await getMoviesFromTMDB(options)
 }
 
 export async function getTopRatedMovies() {
@@ -26,7 +16,7 @@ export async function getTopRatedMovies() {
     url: '/movie/top_rated',
     params: { language: 'es-ES', page: '1' }
   }
-  return await getFromTMDB(options)
+  return await getMoviesFromTMDB(options)
 }
 
 export async function getMoviesByGenre(genreId: number) {
@@ -40,7 +30,7 @@ export async function getMoviesByGenre(genreId: number) {
       sort_by: 'popularity.desc'
     }
   }
-  return await getFromTMDB(options)
+  return await getMoviesFromTMDB(options)
 }
 
 export async function getMovieDetails(id: string) {
@@ -74,28 +64,5 @@ export async function getReviews(id: string, page: number) {
   } catch (error) {
     handleApiError(error)
     return []
-  }
-}
-
-async function getFromTMDB(options: OptionsApi) {
-  try {
-    const response = await tmdb.request(options)
-    const data: MovieApiResponse = response.data
-    return data.results
-  } catch (error) {
-    handleApiError(error)
-    return []
-  }
-}
-
-function handleApiError(error: unknown) {
-  if (axios.isAxiosError(error)) {
-    console.error('Axios error:', error.message)
-    if (error.response) {
-      console.error('Response data:', error.response.data)
-      console.error('Response status:', error.response.status)
-    }
-  } else {
-    console.error('Unexpected error:', error)
   }
 }
