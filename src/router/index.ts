@@ -1,9 +1,5 @@
 import { createRouter, createWebHistory } from 'vue-router'
 import { useAuthStore } from '@/stores/authStore'
-import HomeView from '@/views/HomeView.vue'
-import MovieDetails from '@/views/MovieDetails.vue'
-import LoginView from '@/views/LoginView.vue'
-import AuthCallback from '@/views/AuthCallback.vue'
 
 const router = createRouter({
   history: createWebHistory(import.meta.env.BASE_URL),
@@ -11,31 +7,23 @@ const router = createRouter({
     {
       path: '/',
       name: 'login',
-      component: LoginView
+      component: () => import('@/views/LoginView.vue')
     },
     {
       path: '/home',
       name: 'home',
-      component: HomeView
+      component: () => import('@/views/HomeView.vue')
     },
     {
       path: '/movie/:id',
       name: 'movie',
-      component: MovieDetails
+      component: () => import('@/views/MovieDetails.vue')
     },
     {
       path: '/auth/callback',
       name: 'authCallback',
-      component: AuthCallback
+      component: () => import('@/views/AuthCallback.vue')
     }
-    // {
-    //   path: '/about',
-    //   name: 'about',
-    //   // route level code-splitting
-    //   // this generates a separate chunk (About.[hash].js) for this route
-    //   // which is lazy-loaded when the route is visited.
-    //   component: () => import('../views/AboutView.vue')
-    // }
   ]
 })
 
