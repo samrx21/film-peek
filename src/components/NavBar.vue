@@ -11,7 +11,7 @@
       <div class="flex md:order-2">
         <IconField class="hidden md:block input">
           <InputIcon class="pi pi-search !text-black !border-white" />
-          <InputText v-model="value" placeholder="Search" />
+          <InputText v-model="toSearch" placeholder="Search" @keyup.enter="handleSearch" />
         </IconField>
         <button
           data-collapse-toggle="navbar-search"
@@ -52,15 +52,6 @@
             </RouterLink>
           </li>
           <li class="card flex justify-center">
-            <!-- <RouterLink
-              :to="{ name: 'lists', params: { type: 'list' } }"
-              class="block py-2 px-3 text-white hover:text-tertiary rounded md:bg-transparent md:p-0"
-              aria-current="page"
-              active-class="border-b-2"
-            >
-              Mis listas
-            </RouterLink> -->
-
             <Button type="button" label="Mis Listas" @click="toggle" aria-haspopup="true" aria-controls="overlay_menu" unstyled class="hover:text-tertiary" />
             <Menu ref="menu" id="overlay_menu" :model="listas" :popup="true">
               <template #item="{ item, props }">
@@ -99,7 +90,6 @@ const router = useRouter()
 
 import { ref, onMounted, onUnmounted } from 'vue'
 
-let value = ref('')
 const isScrolled = ref(false)
 
 const handleScroll = () => {
@@ -141,6 +131,19 @@ onMounted(async () => {
 onUnmounted(() => {
   window.removeEventListener('scroll', handleScroll)
 })
+
+const toSearch = ref('')
+
+function handleSearch() {
+  if (toSearch.value.trim()) {
+    router.push({
+      name: 'lists',
+      params: { type: 'search' },
+      query: { search: toSearch.value.trim() }
+    })
+    toSearch.value = '' // Limpiar el input después de buscar
+  }
+}
 </script>
 
 <style scoped>

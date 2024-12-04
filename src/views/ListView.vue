@@ -22,6 +22,7 @@ import ListMovies from '@/components/ListMovies.vue'
 import { getFavoritesMovies, getWatchlistMovies, getMoviesByList } from '@/services/accountService'
 import { useFavoriteStore, useWatchlistStore } from '@/stores'
 import { getMoviesByGenre } from '@/services/moviesApi'
+import { searchMovies } from '@/services/searchService'
 import Paginator from 'primevue/paginator'
 
 const route = useRoute()
@@ -87,17 +88,18 @@ async function loadMovies(pageCurrent = 1) {
         }
         break
 
-      // case 'search':
-      //   if (route.query.search) {
-      //     const response = await getMoviesBySearch(route.query.search as string)
-      //     movies.value = response
-      //   }
-      //   break
+      case 'search':
+        if (route.query.search) {
+          console.log(route.query.search)
+          const response = await searchMovies(route.query.search as string, pageCurrent)
+          movies.value = response.results
+          totalRecords.value = response.total_results
+        }
+        break
 
       case 'list':
         if (route.query.listId) {
-          // const response = await getMoviesByList(+route.query.listId,pageCurrent)
-          const response = await getMoviesByList(1, pageCurrent)
+          const response = await getMoviesByList(+route.query.listId, pageCurrent)
           movies.value = response.items
           descriptionList.value = response.description
           totalRecords.value = response.total_results
