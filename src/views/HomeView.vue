@@ -4,7 +4,10 @@
     <CarouselMovies :movies="popularMovies" />
   </header>
   <main class="h-auto bg-backBase py-20 px-11 relative space-y-10">
-    <MovieCategory v-for="collection in movieCollections" :key="collection.id" :title="collection.name" :movies="collection.movies" />
+    <template v-for="collection in movieCollections" :key="collection.id">
+      <MovieCategory :title="collection.name" :movies="collection.movies" :genre-id="collection.id" v-if="collection.type == 'genre'" />
+      <MovieCategory :title="collection.name" :movies="collection.movies" v-else />
+    </template>
   </main>
 </template>
 
@@ -102,15 +105,14 @@ let genres: Genre[] = [
 onMounted(async () => {
   let popularMoviesObtained = await getPopularMovies()
   if (popularMoviesObtained) {
-    popularMovies.value.push(...popularMoviesObtained)
+    popularMovies.value.push(...popularMoviesObtained.results)
   }
-  let topRatedMovies: Movie[]
-  topRatedMovies = await getTopRatedMovies()
-  movieCollections.value.push({ id: 1, type: 'popular', name: 'Top Ranking', movies: topRatedMovies })
+  let topRatedMovies = await getTopRatedMovies()
+  movieCollections.value.push({ id: 1, type: 'popular', name: 'Top Ranking', movies: topRatedMovies.results })
 
   genres.map(async (genre) => {
     let movies = await getMoviesByGenre(genre.id)
-    movieCollections.value.push({ id: genre.id, type: 'genre', name: genre.name, movies })
+    movieCollections.value.push({ id: genre.id, type: 'genre', name: genre.name, movies: movies.results })
   })
 })
 </script>

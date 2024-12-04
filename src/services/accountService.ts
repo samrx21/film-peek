@@ -21,17 +21,18 @@ export async function handleFavorite(media_type: string, media_id: number, favor
   console.log('response of addFavorite', response)
 }
 
-export async function getFavoritesMovies() {
+export async function getFavoritesMovies(page: number = 1) {
   const authStore = useAuthStore()
   const favoriteStore = useFavoriteStore()
   const options: OptionsApi = {
     method: 'GET',
     url: '/account/account_id/favorite/movies?session_id=' + authStore.sessionId,
-    params: { language: 'es-ES', page: '1', sort_by: 'created_at.desc' }
+    params: { language: 'es-ES', page: page.toString(), sort_by: 'created_at.desc' }
   }
 
   const response = await getMoviesFromTMDB(options)
-  favoriteStore.setFavoritesMovies(response)
+  favoriteStore.setFavoritesMovies(response.results)
+  return response
 }
 
 export async function handleWatchlist(media_type: string, media_id: number, watchlist: boolean) {
@@ -51,17 +52,18 @@ export async function handleWatchlist(media_type: string, media_id: number, watc
   console.log('response of addWatchlist', response)
 }
 
-export async function getWatchlistMovies() {
+export async function getWatchlistMovies(page: number = 1) {
   const authStore = useAuthStore()
   const watchlistStore = useWatchlistStore()
   const options: OptionsApi = {
     method: 'GET',
     url: '/account/account_id/watchlist/movies?session_id=' + authStore.sessionId,
-    params: { language: 'es-ES', page: '1', sort_by: 'created_at.desc' }
+    params: { language: 'es-ES', page: page.toString(), sort_by: 'created_at.desc' }
   }
 
   const response = await getMoviesFromTMDB(options)
-  watchlistStore.setWatchlistMovies(response)
+  watchlistStore.setWatchlistMovies(response.results)
+  return response
 }
 
 export async function createList(name: string, description: string) {
@@ -183,11 +185,11 @@ export async function getAccountStates(movie_id: number) {
   return response.data
 }
 
-export async function getMoviesByList(list_id: number) {
+export async function getMoviesByList(list_id: number, page: number = 1) {
   const options = {
     method: 'GET',
     url: `https://api.themoviedb.org/3/list/${list_id}`,
-    params: { language: 'es-ES', page: '1' },
+    params: { language: 'es-ES', page: page.toString() },
     headers: {
       accept: 'application/json',
       Authorization: `Bearer ${apiKey}`

@@ -19,13 +19,13 @@ export async function getTopRatedMovies() {
   return await getMoviesFromTMDB(options)
 }
 
-export async function getMoviesByGenre(genreId: number) {
+export async function getMoviesByGenre(genreId: number, page: number = 1) {
   const options: OptionsApi = {
     method: 'GET',
     url: '/discover/movie',
     params: {
       language: 'es-ES',
-      page: '1',
+      page: page.toString(),
       with_genres: genreId.toString(),
       sort_by: 'popularity.desc'
     }

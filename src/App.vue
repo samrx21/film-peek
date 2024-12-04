@@ -1,11 +1,13 @@
 <template>
   <div class="bg-dark w-full">
     <RouterView />
+    <Toast />
   </div>
 </template>
 
 <script setup lang="ts">
 import 'primeicons/primeicons.css'
+import Toast from 'primevue/toast'
 </script>
 
 <style>

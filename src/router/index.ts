@@ -30,6 +30,7 @@ const router = createRouter({
       component: () => import('@/views/ListView.vue'),
       props: (route) => ({
         genreId: route.query.genreId,
+        genreName: route.query.genreName,
         query: route.query.search,
         listId: route.query.listId
       })

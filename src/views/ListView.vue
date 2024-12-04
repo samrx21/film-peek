@@ -6,6 +6,11 @@
       <p class="text-lg text-gray-500 mb-5" v-if="route.params.type == 'list' && route.query.listId">{{ descriptionList }}</p>
       <ListMovies :movies="movies" />
     </section>
+    <nav class="mt-6">
+      <div class="card">
+        <Paginator :rows="20" :totalRecords="totalRecords" @page="changePage"></Paginator>
+      </div>
+    </nav>
   </main>
 </template>
 
@@ -16,10 +21,24 @@ import type { Movie } from '@/types'
 import ListMovies from '@/components/ListMovies.vue'
 import { getFavoritesMovies, getWatchlistMovies, getMoviesByList } from '@/services/accountService'
 import { useFavoriteStore, useWatchlistStore } from '@/stores'
+import { getMoviesByGenre } from '@/services/moviesApi'
+import Paginator from 'primevue/paginator'
 
 const route = useRoute()
 const movies = ref<Movie[]>([])
 const descriptionList = ref('')
+let totalRecords = ref(0)
+
+// Cargar películas al montar el componente
+onMounted(() => {
+  loadMovies()
+})
+
+// Observar cambios en la ruta y query paramspara recargar películas
+watch([() => route.params.type, () => route.query], () => {
+  loadMovies()
+  window.scrollTo({ top: 0, behavior: 'smooth' })
+})
 
 // Título dinámico según el tipo
 const title = computed(() => {
@@ -40,29 +59,33 @@ const title = computed(() => {
 })
 
 // Cargar películas según el tipo
-async function loadMovies() {
+async function loadMovies(pageCurrent = 1) {
   const favoriteStore = useFavoriteStore()
   const watchlistStore = useWatchlistStore()
   // const listsStore = useListsStore()
 
   try {
     switch (route.params.type) {
-      case 'favorites':
-        await getFavoritesMovies()
+      case 'favorites': {
+        let response = await getFavoritesMovies(pageCurrent)
+        totalRecords.value = response.total_results
         movies.value = favoriteStore.FavoritesMovies
         break
+      }
 
-      case 'watchlist':
-        await getWatchlistMovies()
+      case 'watchlist': {
+        let response = await getWatchlistMovies(pageCurrent)
         movies.value = watchlistStore.watchlistMovies
+        totalRecords.value = response.total_results
         break
-
-      // case 'genre':
-      //   if (route.query.genreId) {
-      //     const response = await getMoviesByGenre(route.query.genreId as string)
-      //     movies.value = response
-      //   }
-      //   break
+      }
+      case 'genre':
+        if (route.query.genreId) {
+          const response = await getMoviesByGenre(+route.query.genreId, pageCurrent)
+          movies.value = response.results
+          totalRecords.value = response.total_results
+        }
+        break
 
       // case 'search':
       //   if (route.query.search) {
@@ -73,9 +96,11 @@ async function loadMovies() {
 
       case 'list':
         if (route.query.listId) {
-          const response = await getMoviesByList(+route.query.listId)
+          // const response = await getMoviesByList(+route.query.listId,pageCurrent)
+          const response = await getMoviesByList(1, pageCurrent)
           movies.value = response.items
           descriptionList.value = response.description
+          totalRecords.value = response.total_results
         }
         break
     }
@@ -84,14 +109,7 @@ async function loadMovies() {
   }
 }
 
-// Cargar películas al montar el componente
-onMounted(() => {
-  loadMovies()
-})
-
-// Observar cambios en la ruta y query paramspara recargar películas
-watch([() => route.params.type, () => route.query], () => {
-  loadMovies()
-  window.scrollTo({ top: 0, behavior: 'smooth' })
-})
+async function changePage(event: { page: number; first: number; rows: number; pageCount: number }) {
+  await loadMovies(event.page + 1)
+}
 </script>

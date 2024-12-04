@@ -2,7 +2,7 @@
   <section>
     <div class="flex justify-between items-center">
       <h2 class="text-3xl mb-2">{{ props.title }}</h2>
-      <span>Ver mas</span>
+      <span v-if="props.genreId"><button @click="goToVerMasGenre">Ver mas</button></span>
     </div>
     <swiper-container :slides-per-view="6" :navigation="true">
       <swiper-slide v-for="movie in props.movies" :key="movie.id" class="h-auto relative" @mouseover="handleHover(movie.id)" @mouseleave="handleHover(-99999)">
@@ -29,8 +29,8 @@
           </div>
         </transition>
       </swiper-slide>
-      <swiper-slide class="flex justify-center items-center h-auto">
-        <ButtonPrimary label="Ver mas" class="w-18" />
+      <swiper-slide class="flex justify-center items-center h-auto" v-if="props.genreId">
+        <ButtonPrimary label="Ver mas" class="w-18" @click="goToVerMasGenre" />
       </swiper-slide>
     </swiper-container>
   </section>
@@ -47,6 +47,7 @@ import type { Movie } from '@/types'
 const props = defineProps<{
   movies: Movie[]
   title: string
+  genreId?: number
 }>()
 
 //Registrar elementos de Swiper
@@ -61,6 +62,17 @@ function handleHover(id: number) {
 const router = useRouter()
 function goToMovieDetails(id: number): void {
   router.push({ name: 'movie', params: { id } })
+}
+
+function goToVerMasGenre() {
+  router.push({
+    name: 'lists',
+    params: { type: 'genre' },
+    query: {
+      genreId: props.genreId,
+      genreName: props.title
+    }
+  })
 }
 </script>
 <style scoped>
