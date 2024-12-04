@@ -32,10 +32,50 @@
             <RouterLink to="/home" class="block py-2 px-3 text-white hover:text-tertiary rounded md:bg-transparent md:p-0" aria-current="page" active-class="border-b-2">Home</RouterLink>
           </li>
           <li>
-            <a href="#" class="block py-2 px-3 rounded hover:text-tertiary md:p-0 dark:text-white">About</a>
+            <RouterLink
+              :to="{ name: 'lists', params: { type: 'favorites' } }"
+              class="block py-2 px-3 text-white hover:text-tertiary rounded md:bg-transparent md:p-0"
+              aria-current="page"
+              active-class="border-b-2"
+            >
+              Favoritos
+            </RouterLink>
           </li>
           <li>
-            <a href="#" class="block py-2 px-3 rounded hover:text-tertiary md:p-0 dark:text-white">Services</a>
+            <RouterLink
+              :to="{ name: 'lists', params: { type: 'watchlist' } }"
+              class="block py-2 px-3 text-white hover:text-tertiary rounded md:bg-transparent md:p-0"
+              aria-current="page"
+              active-class="border-b-2"
+            >
+              Siguiendo
+            </RouterLink>
+          </li>
+          <li class="card flex justify-center">
+            <!-- <RouterLink
+              :to="{ name: 'lists', params: { type: 'list' } }"
+              class="block py-2 px-3 text-white hover:text-tertiary rounded md:bg-transparent md:p-0"
+              aria-current="page"
+              active-class="border-b-2"
+            >
+              Mis listas
+            </RouterLink> -->
+
+            <Button type="button" label="Mis Listas" @click="toggle" aria-haspopup="true" aria-controls="overlay_menu" unstyled class="hover:text-tertiary" />
+            <Menu ref="menu" id="overlay_menu" :model="listas" :popup="true">
+              <template #item="{ item, props }">
+                <RouterLink v-if="item.route" v-slot="{ href, navigate }" :to="item.route" custom>
+                  <a :href="href" v-bind="props.action" @click="navigate">
+                    <span :class="item.icon" />
+                    <span class="ml-2">{{ item.label }}</span>
+                  </a>
+                </RouterLink>
+                <a v-else :href="item.url" :target="item.target" v-bind="props.action">
+                  <span :class="item.icon" />
+                  <span class="ml-2">{{ item.label }}</span>
+                </a>
+              </template>
+            </Menu>
           </li>
         </ul>
       </div>
@@ -49,6 +89,13 @@ import IconField from 'primevue/iconfield'
 import InputIcon from 'primevue/inputicon'
 import InputText from 'primevue/inputtext'
 import shape from '@/assets/shape.svg'
+import Menu from 'primevue/menu'
+import Button from 'primevue/button'
+import { useListsStore } from '@/stores'
+import { getLists } from '@/services/accountService'
+import { useRouter } from 'vue-router'
+
+const router = useRouter()
 
 import { ref, onMounted, onUnmounted } from 'vue'
 
@@ -59,7 +106,35 @@ const handleScroll = () => {
   isScrolled.value = window.scrollY > 50
 }
 
-onMounted(() => {
+const menu = ref()
+const toggle = (event) => {
+  menu.value.toggle(event)
+}
+
+const listas = ref([])
+
+onMounted(async () => {
+  const listsStore = useListsStore()
+  await getLists()
+  listas.value = [
+    {
+      label: 'Listas',
+      items: listsStore.listsPreview.map((list) => ({
+        label: list.name,
+        icon: 'pi pi-list',
+        command: () => {
+          router.push({
+            name: 'lists',
+            params: { type: 'list' },
+            query: {
+              listId: list.id,
+              listName: list.name
+            }
+          })
+        }
+      }))
+    }
+  ]
   window.addEventListener('scroll', handleScroll)
 })
 

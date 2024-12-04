@@ -2,17 +2,20 @@ import { defineStore } from 'pinia'
 import type { Movie } from '@/types'
 
 interface FavoriteState {
-  favorites: Array<Number>
+  favorites: number[]
+  FavoritesMovies: Array<Movie>
 }
 
 export const useFavoriteStore = defineStore('favorite', {
   state: (): FavoriteState => ({
-    favorites: []
+    favorites: [],
+    FavoritesMovies: []
   }),
 
   actions: {
-    setFavoritesMovies(favoritesList: Array<Movie>) {
-      this.favorites = favoritesList.map((movie) => movie.id)
+    setFavoritesMovies(movies: Array<Movie>) {
+      this.favorites = movies.map((movie) => movie.id)
+      this.FavoritesMovies = movies
     }
   }
 })

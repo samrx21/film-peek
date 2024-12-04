@@ -36,8 +36,72 @@
           <div class="flex gap-4">
             <ButtonPrimary label="Agregar a favoritos" icon="pi pi-heart" @click="updateFavorite(movie.id, true)" v-if="!favoriteStore.favorites.includes(movie.id)" />
             <ButtonPrimary label="Eliminar de favoritos" icon="pi pi-heart-fill" @click="updateFavorite(movie.id, false)" v-else />
-            <ButtonPrimary label="Agregar a ver más tarde" icon="pi pi-bookmark" />
-            <Button label="Califica esta película" icon="pi pi-star" outlined class="!text-white !border-white" />
+            <ButtonPrimary label="Ver más tarde" icon="pi pi-bookmark" @click="updateWatchlist(movie.id, true)" v-if="!watchlistStore.watchlist.includes(movie.id)" />
+            <ButtonPrimary label="Para ver más tarde" icon="pi pi-bookmark-fill" @click="updateWatchlist(movie.id, false)" v-else />
+
+            <MultiSelect
+              ref="multiSelectLists"
+              v-model="listsSelected"
+              :options="listsStore.listsPreview"
+              optionLabel="name"
+              filter
+              placeholder="Agregar a lista"
+              :maxSelectedLabels="2"
+              scrollHeight="12rem"
+            >
+              <template #option="slotProps">
+                <div class="flex items-center">
+                  <div>{{ slotProps.option.name }}</div>
+                </div>
+              </template>
+              <template #dropdownicon>
+                <i class="pi pi-list" />
+              </template>
+              <template #header>
+                <div class="font-medium px-3 py-2">Tus listas</div>
+              </template>
+              <template #footer="">
+                <div class="p-3 flex justify-between">
+                  <Button label="Crear Lista" severity="secondary" text size="small" icon="pi pi-plus" @click="showCreateList = true" />
+                  <Button label="Guardar" text size="small" icon="pi pi-list-check" @click="updateLists" />
+                </div>
+              </template>
+            </MultiSelect>
+
+            <Dialog v-model:visible="showCreateList" modal header="Crear nueva lista" :style="{ width: '25rem' }">
+              <div class="flex items-center gap-4 mb-4">
+                <label for="nameList" class="font-semibold w-24">Nombre</label>
+                <InputText id="nameList" class="flex-auto" autocomplete="off" v-model="listToCreate.name" />
+              </div>
+              <div class="flex items-center gap-4 mb-8">
+                <label for="descList" class="font-semibold w-24">Descripcion</label>
+                <InputText id="descList" class="flex-auto" autocomplete="off" v-model="listToCreate.description" />
+              </div>
+              <div class="flex justify-end gap-2">
+                <Button type="button" label="Cancel" severity="secondary" @click="showCreateList = false"></Button>
+                <Button type="button" label="Save" @click="handleCreateList"></Button>
+              </div>
+            </Dialog>
+
+            <Button
+              :label="rating == 0 ? 'Califica esta película' : 'Mi calificación: ' + rating.toString()"
+              :icon="rating == 0 ? 'pi pi-star' : 'pi pi-star-fill'"
+              outlined
+              :iconPos="rating == 0 ? 'left' : 'right'"
+              class="!text-white !border-white"
+              @click="handleRate"
+            />
+
+            <Dialog v-model:visible="showRateMovie" modal header="Califica esta película" @hide="handldeHideRate" :style="{ width: '25rem' }">
+              <div class="flex items-center gap-4 mb-4">
+                <label for="rating" class="font-semibold w-24">Calificación</label>
+                <Rating v-model="rating" id="rating" :stars="10" />
+              </div>
+              <div class="flex justify-end gap-2">
+                <Button type="button" label="Eliminar Calificacion" severity="danger" @click="handleDeleteRating(movie.id)"></Button>
+                <Button type="button" label="Save" @click="handleAddRating(rating, movie.id)"></Button>
+              </div>
+            </Dialog>
           </div>
           <div>
             <div class="flex items-center gap-3">
@@ -213,22 +277,26 @@
 import { onMounted } from 'vue'
 import { useRoute } from 'vue-router'
 import { getMovieDetails } from '@/services/moviesApi'
-import { getFavoritesMovies } from '@/services/accountService'
-import type { MovieDetails, WatchProvider, WatchProviderDescription } from '@/types'
+import { getFavoritesMovies, getWatchlistMovies, checkIfMovieIsInList, addMovieToList, removeMovieFromList, addRating, deleteRating, getAccountStates } from '@/services/accountService'
+import type { MovieDetails, WatchProvider, WatchProviderDescription, ListPreview } from '@/types'
 import Star from '@/assets/star.svg'
 import ButtonPrimary from '@/components/ButtonPrimary.vue'
 import Button from 'primevue/button'
+import MultiSelect from 'primevue/multiselect'
+import InputText from 'primevue/inputtext'
+import Dialog from 'primevue/dialog'
+import Rating from 'primevue/rating'
 import { roundToDecimal } from '@/utils/math'
 import { register } from 'swiper/element/bundle'
 import { ref, watch } from 'vue'
 import MovieCategory from '@/components/MovieCategory.vue'
-import { handleFavorite } from '@/services/accountService'
-import { useFavoriteStore } from '@/stores/favoriteStore'
-
-// import 'primeicons/primeicons.css'
+import { handleFavorite, handleWatchlist, getLists, createList } from '@/services/accountService'
+import { useFavoriteStore, useWatchlistStore, useListsStore } from '@/stores'
 
 const route = useRoute()
 const favoriteStore = useFavoriteStore()
+const watchlistStore = useWatchlistStore()
+const listsStore = useListsStore()
 const movie = ref<MovieDetails>()
 //Registrar elementos de Swiper
 register()
@@ -239,11 +307,16 @@ async function loadMovieDetails() {
     movie.value = response
     console.log('datails', movie.value)
 
-    movie.value['watch/providers']
+    await getFavoritesMovies()
+    await getWatchlistMovies()
+    await getLists()
 
-    let responssss = await getFavoritesMovies()
-    console.log('responssss:', responssss)
-    console.log('Favorites:', favoriteStore.favorites)
+    await checkMovieInLists(movie.value.id)
+
+    let accountStates = await getAccountStates(movie.value.id)
+    if (accountStates.rated) {
+      rating.value = accountStates.rated.value
+    }
   }
 }
 
@@ -263,6 +336,100 @@ onMounted(async () => {
 async function updateFavorite(id: number, isFavorite: boolean) {
   await handleFavorite('movie', id, isFavorite)
   await getFavoritesMovies()
+}
+
+async function updateWatchlist(id: number, isWatchlist: boolean) {
+  await handleWatchlist('movie', id, isWatchlist)
+  await getWatchlistMovies()
+}
+
+const listsSelected = ref<ListPreview[]>([])
+let showCreateList = ref(false)
+let listToCreate = ref({ name: '', description: '' })
+
+async function handleCreateList() {
+  await createList(listToCreate.value.name, listToCreate.value.description)
+  await getLists()
+  showCreateList.value = false
+}
+
+let copiedArray = ref<ListPreview[]>([])
+const multiSelectLists = ref()
+function updateLists() {
+  if (movie.value && movie.value.id) {
+    const movie_id = movie.value.id
+    if (!areListsEqual(copiedArray.value, listsSelected.value)) {
+      listsSelected.value.forEach(async (list) => {
+        if (!copiedArray.value.some((item) => item.id === list.id)) {
+          console.log('entro')
+          await addMovieToList(list.id, movie_id)
+        }
+      })
+
+      copiedArray.value.forEach(async (list) => {
+        if (!listsSelected.value.some((item) => item.id === list.id)) {
+          console.log('entro')
+          await removeMovieFromList(list.id, movie_id)
+        }
+      })
+
+      copiedArray.value = JSON.parse(JSON.stringify(listsSelected.value))
+    }
+    multiSelectLists.value.hide()
+  }
+}
+function areListsEqual(array1: ListPreview[], array2: ListPreview[]): boolean {
+  // Verificar si tienen la misma longitud
+  if (array1.length !== array2.length) return false
+
+  // Ordenar los arrays por id para asegurar la comparación
+  const sortedArray1 = [...array1].sort((a, b) => a.id - b.id)
+  const sortedArray2 = [...array2].sort((a, b) => a.id - b.id)
+
+  // Comparar cada elemento
+  return sortedArray1.every((item, index) => item.id === sortedArray2[index].id)
+}
+
+async function checkMovieInLists(movie_id: number) {
+  //console.log('movie_id', movie_id) //8498979
+  for (const list of listsStore.listsPreview) {
+    const isInList = await checkIfMovieIsInList(list.id, movie_id)
+    //console.log('list.id', list.id) // 912649
+    if (isInList.item_present) {
+      listsSelected.value.push(list)
+    }
+    // Puedes realizar otras acciones si la película está en la lista
+  }
+  copiedArray.value = JSON.parse(JSON.stringify(listsSelected.value))
+}
+
+let showRateMovie = ref(false)
+let rating = ref(0)
+let tempRating = ref(0)
+
+function handleRate() {
+  tempRating.value = +rating.value
+  showRateMovie.value = true
+}
+
+async function handleAddRating(value: number, movie_id: number) {
+  await addRating(value, movie_id)
+  ratingChanged.value = true
+  showRateMovie.value = false
+}
+
+async function handleDeleteRating(movie_id: number) {
+  await deleteRating(movie_id)
+  ratingChanged.value = true
+  showRateMovie.value = false
+}
+
+let ratingChanged = ref(false)
+function handldeHideRate() {
+  if (!ratingChanged.value) {
+    rating.value = tempRating.value
+    ratingChanged.value = false
+  }
 }
 
 function filterProviders(providers: WatchProvider): WatchProviderDescription[] {

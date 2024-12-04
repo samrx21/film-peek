@@ -23,6 +23,16 @@ const router = createRouter({
       path: '/auth/callback',
       name: 'authCallback',
       component: () => import('@/views/AuthCallback.vue')
+    },
+    {
+      path: '/lists/:type',
+      name: 'lists',
+      component: () => import('@/views/ListView.vue'),
+      props: (route) => ({
+        genreId: route.query.genreId,
+        query: route.query.search,
+        listId: route.query.listId
+      })
     }
   ]
 })
