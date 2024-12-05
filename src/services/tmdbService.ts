@@ -1,9 +1,8 @@
 import axios from 'axios'
 import type { AxiosResponse, AxiosInstance, AxiosError } from 'axios'
 import type { OptionsApi, MovieApiResponse } from '@/types'
-import { useToast } from 'primevue/usetoast'
 
-const apiKey = import.meta.env.TMDB_TOKEN as string
+const apiKey = import.meta.env.VITE_TMDB_TOKEN as string
 
 export const tmdb: AxiosInstance = axios.create({
   baseURL: 'https://api.themoviedb.org/3',
@@ -24,7 +23,6 @@ export async function getMoviesFromTMDB(options: OptionsApi): Promise<MovieApiRe
 }
 
 export function handleApiError(error: unknown) {
-  const toast = useToast()
   if (axios.isAxiosError(error)) {
     const axiosError = error as AxiosError
     console.error('Error en la petición:', {
@@ -37,19 +35,18 @@ export function handleApiError(error: unknown) {
     // Manejar errores específicos
     switch (axiosError.response?.status) {
       case 401:
-        toast.add({ severity: 'error', summary: 'Error Code' + axiosError.code, detail: axiosError.message, life: 3000 })
+        console.error('Error 401:', axiosError.message)
         break
       case 404:
-        toast.add({ severity: 'error', summary: 'Error Code' + axiosError.code, detail: axiosError.message, life: 3000 })
+        console.error('Error 404:', axiosError.message)
         break
       case 429:
-        toast.add({ severity: 'error', summary: 'Error Code' + axiosError.code, detail: axiosError.message, life: 3000 })
+        console.error('Error 429:', axiosError.message)
         break
       default:
-        toast.add({ severity: 'error', summary: 'Error en la petición a TMDB', detail: 'Algo salio mal', life: 3000 })
-        console.error('Error en la petición a TMDB')
+        console.error('Error en la petición a TMDB:', axiosError.message)
     }
   } else {
-    toast.add({ severity: 'error', summary: 'Error inesperado', detail: error, life: 3000 })
+    console.error('Error inesperado:', error)
   }
 }

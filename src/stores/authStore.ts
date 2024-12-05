@@ -1,6 +1,6 @@
 import { defineStore } from 'pinia'
 import axios from 'axios'
-const apiKey = import.meta.env.TMDB_TOKEN as string
+const apiKey = import.meta.env.VITE_TMDB_TOKEN as string
 
 interface AuthState {
   sessionId: string | null
