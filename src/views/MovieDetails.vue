@@ -48,7 +48,7 @@
               placeholder="Agregar a lista"
               :maxSelectedLabels="2"
               scrollHeight="12rem"
-              v-if="authStore.isAuthenticated"
+              :disabled="!authStore.isAuthenticated"
             >
               <template #option="slotProps">
                 <div class="flex items-center">
@@ -311,15 +311,17 @@ async function loadMovieDetails() {
     movie.value = response
     console.log('datails', movie.value)
 
-    await getFavoritesMovies()
-    await getWatchlistMovies()
-    await getLists()
+    if (authStore.isAuthenticated) {
+      await getFavoritesMovies()
+      await getWatchlistMovies()
+      await getLists()
 
-    await checkMovieInLists(movie.value.id)
+      await checkMovieInLists(movie.value.id)
 
-    let accountStates = await getAccountStates(movie.value.id)
-    if (accountStates.rated) {
-      rating.value = accountStates.rated.value
+      let accountStates = await getAccountStates(movie.value.id)
+      if (accountStates.rated) {
+        rating.value = accountStates.rated.value
+      }
     }
   }
 }
