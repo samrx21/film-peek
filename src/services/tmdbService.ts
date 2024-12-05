@@ -3,7 +3,7 @@ import type { AxiosResponse, AxiosInstance, AxiosError } from 'axios'
 import type { OptionsApi, MovieApiResponse } from '@/types'
 import { useToast } from 'primevue/usetoast'
 
-const apiKey = import.meta.env.VITE_TMDB_ACCESS_TOKEN_AUTH as string
+const apiKey = import.meta.env.TMDB_TOKEN as string
 
 export const tmdb: AxiosInstance = axios.create({
   baseURL: 'https://api.themoviedb.org/3',

@@ -1,7 +1,7 @@
 import { getMoviesFromTMDB, tmdb } from '@/services/tmdbService'
 import type { OptionsApi, ListDetails } from '@/types'
 import axios from 'axios'
-const apiKey = import.meta.env.VITE_TMDB_ACCESS_TOKEN_AUTH as string
+const apiKey = import.meta.env.TMDB_TOKEN as string
 import { useAuthStore, useFavoriteStore, useWatchlistStore, useListsStore } from '@/stores'
 
 export async function handleFavorite(media_type: string, media_id: number, favorite: boolean) {
