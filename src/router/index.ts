@@ -1,4 +1,5 @@
 import { createRouter, createWebHistory } from 'vue-router'
+import type { RouteLocationNormalized } from 'vue-router'
 import { useAuthStore } from '@/stores/authStore'
 
 const router = createRouter({
@@ -33,12 +34,18 @@ const router = createRouter({
         genreName: route.query.genreName,
         query: route.query.search,
         listId: route.query.listId
-      })
+      }),
+      meta: {
+        requiresAuth: (route: RouteLocationNormalized) => {
+          const protectedTypes = ['favorites', 'watchlist', 'list']
+          return protectedTypes.includes(route.params.type as string)
+        }
+      }
     }
   ]
 })
 
-// Guardia de navegación para rutas protegidas -- Sin utilizar
+// Guardia de navegación para rutas protegidas
 router.beforeEach((to, from, next) => {
   const authStore = useAuthStore()
 
@@ -48,12 +55,20 @@ router.beforeEach((to, from, next) => {
     return
   }
 
-  // Si la ruta requiere autenticación y el usuario no está autenticado, redirige al login
-  if (to.meta.requiresAuth && !authStore.isAuthenticated) {
+  // Verificar si la ruta requiere autenticación
+  const requiresAuth = to.matched.some((record) => {
+    if (typeof record.meta.requiresAuth === 'function') {
+      return record.meta.requiresAuth(to)
+    }
+    return record.meta.requiresAuth
+  })
+
+  if (requiresAuth && !authStore.isAuthenticated) {
     next('/')
-  } else {
-    next()
+    return
   }
+
+  next()
 })
 
 export default router

@@ -5,6 +5,7 @@ import { createPinia } from 'pinia'
 import router from './router'
 import PrimeVue from 'primevue/config'
 import Tooltip from 'primevue/tooltip'
+import ToastService from 'primevue/toastservice'
 
 import Aura from '@primevue/themes/aura'
 
@@ -24,5 +25,6 @@ app.use(PrimeVue, {
 
 app.component('NavBar', NavBar)
 app.directive('tooltip', Tooltip)
+app.use(ToastService)
 
 app.mount('#app')

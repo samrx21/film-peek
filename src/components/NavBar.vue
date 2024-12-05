@@ -1,7 +1,7 @@
 <template>
   <nav class="fixed top-0 left-0 right-0 z-50 transition-colors duration-300 ease-in-out" :class="{ 'bg-backBase bg-opacity-65 ': isScrolled }">
     <div class="max-w-screen-xl flex flex-wrap items-center justify-between mx-auto px-4 transition-all duration-300 ease-in-out" :class="{ 'py-4': !isScrolled, 'py-2': isScrolled }">
-      <RouterLink to="/" class="flex items-center space-x-3 rtl:space-x-reverse">
+      <RouterLink to="/home" class="flex items-center space-x-3 rtl:space-x-reverse">
         <shape class="h-10 w-10 text-primary" />
         <span class="self-center text-3xl font-semibold whitespace-nowrap dark:text-white">
           <span class="text-primary">Film</span>
@@ -51,7 +51,7 @@
               Siguiendo
             </RouterLink>
           </li>
-          <li class="card flex justify-center">
+          <li class="card flex justify-center" v-if="authStore.isAuthenticated">
             <Button type="button" label="Mis Listas" @click="toggle" aria-haspopup="true" aria-controls="overlay_menu" unstyled class="hover:text-tertiary" />
             <Menu ref="menu" id="overlay_menu" :model="listas" :popup="true">
               <template #item="{ item, props }">
@@ -85,8 +85,10 @@ import Button from 'primevue/button'
 import { useListsStore } from '@/stores'
 import { getLists } from '@/services/accountService'
 import { useRouter } from 'vue-router'
+import { useAuthStore } from '@/stores'
 
 const router = useRouter()
+const authStore = useAuthStore()
 
 import { ref, onMounted, onUnmounted } from 'vue'
 

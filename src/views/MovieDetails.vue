@@ -48,6 +48,7 @@
               placeholder="Agregar a lista"
               :maxSelectedLabels="2"
               scrollHeight="12rem"
+              v-if="authStore.isAuthenticated"
             >
               <template #option="slotProps">
                 <div class="flex items-center">
@@ -291,13 +292,16 @@ import { register } from 'swiper/element/bundle'
 import { ref, watch } from 'vue'
 import MovieCategory from '@/components/MovieCategory.vue'
 import { handleFavorite, handleWatchlist, getLists, createList } from '@/services/accountService'
-import { useFavoriteStore, useWatchlistStore, useListsStore } from '@/stores'
+import { useFavoriteStore, useWatchlistStore, useListsStore, useAuthStore } from '@/stores'
+import { useToast } from 'primevue/usetoast'
 
 const route = useRoute()
 const favoriteStore = useFavoriteStore()
 const watchlistStore = useWatchlistStore()
 const listsStore = useListsStore()
+const authStore = useAuthStore()
 const movie = ref<MovieDetails>()
+const toast = useToast()
 //Registrar elementos de Swiper
 register()
 
@@ -334,11 +338,19 @@ onMounted(async () => {
 })
 
 async function updateFavorite(id: number, isFavorite: boolean) {
+  if (!authStore.isAuthenticated) {
+    toast.add({ severity: 'info', summary: 'Info', detail: 'Inicia sesion con TMDB para disfrutar de todas las funciones', life: 3000 })
+    return
+  }
   await handleFavorite('movie', id, isFavorite)
   await getFavoritesMovies()
 }
 
 async function updateWatchlist(id: number, isWatchlist: boolean) {
+  if (!authStore.isAuthenticated) {
+    toast.add({ severity: 'info', summary: 'Info', detail: 'Inicia sesion con TMDB para disfrutar de todas las funciones', life: 3000 })
+    return
+  }
   await handleWatchlist('movie', id, isWatchlist)
   await getWatchlistMovies()
 }
@@ -408,6 +420,10 @@ let rating = ref(0)
 let tempRating = ref(0)
 
 function handleRate() {
+  if (!authStore.isAuthenticated) {
+    toast.add({ severity: 'info', summary: 'Info', detail: 'Inicia sesion con TMDB para disfrutar de todas las funciones', life: 3000 })
+    return
+  }
   tempRating.value = +rating.value
   showRateMovie.value = true
 }
