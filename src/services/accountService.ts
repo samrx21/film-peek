@@ -3,6 +3,7 @@ import type { OptionsApi, ListDetails } from '@/types'
 import axios from 'axios'
 const apiKey = import.meta.env.VITE_TMDB_TOKEN as string
 import { useAuthStore, useFavoriteStore, useWatchlistStore, useListsStore } from '@/stores'
+import { useToast } from 'primevue/usetoast'
 
 export async function handleFavorite(media_type: string, media_id: number, favorite: boolean) {
   const authStore = useAuthStore()
@@ -17,8 +18,7 @@ export async function handleFavorite(media_type: string, media_id: number, favor
     data: { media_type: media_type, media_id: media_id, favorite: favorite }
   }
 
-  const response = await axios.request(options)
-  console.log('response of addFavorite', response)
+  await axios.request(options)
 }
 
 export async function getFavoritesMovies(page: number = 1) {
@@ -48,8 +48,9 @@ export async function handleWatchlist(media_type: string, media_id: number, watc
     data: { media_type: media_type, media_id: media_id, watchlist: watchlist }
   }
 
-  const response = await axios.request(options)
-  console.log('response of addWatchlist', response)
+  await axios.request(options)
+  const toast = useToast()
+  toast.add({ severity: 'success', summary: 'Success', detail: 'Pelicula agregada para ver mas tarde' })
 }
 
 export async function getWatchlistMovies(page: number = 1) {
@@ -108,8 +109,9 @@ export async function addMovieToList(list_id: number, media_id: number) {
     data: { media_id: media_id }
   }
 
-  const response = await axios.request(options)
-  console.log('response of addMovieToList', response)
+  await axios.request(options)
+  const toast = useToast()
+  toast.add({ severity: 'success', summary: 'Success', detail: 'Pelicula agregada a lista' })
 }
 
 export async function removeMovieFromList(list_id: number, media_id: number) {
@@ -151,10 +153,10 @@ export async function addRating(value: number, movie_id: number) {
     },
     data: `{"value":${value}}`
   }
-  console.log(options)
 
-  const response = await axios.request(options)
-  console.log('response of addRating', response.data)
+  await axios.request(options)
+  const toast = useToast()
+  toast.add({ severity: 'success', summary: 'Success', detail: 'Calificación establecida' })
 }
 
 export async function deleteRating(movie_id: number) {
@@ -169,8 +171,9 @@ export async function deleteRating(movie_id: number) {
     }
   }
 
-  const response = await axios.request(options)
-  console.log('response of deleteRating', response)
+  await axios.request(options)
+  const toast = useToast()
+  toast.add({ severity: 'success', summary: 'Success', detail: 'Calificación eliminada' })
 }
 
 export async function getAccountStates(movie_id: number) {
@@ -179,7 +182,6 @@ export async function getAccountStates(movie_id: number) {
     method: 'GET',
     url: `/movie/${movie_id}/account_states?session_id=${authStore.sessionId}`
   }
-  console.log(options)
 
   const response = await tmdb.request(options)
   return response.data

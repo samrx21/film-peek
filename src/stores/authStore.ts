@@ -28,7 +28,6 @@ export const useAuthStore = defineStore('auth', {
         }
 
         const response = await axios.request(options)
-        console.log('response of token', response)
 
         this.sessionId = response.data.session_id
 

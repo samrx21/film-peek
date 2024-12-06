@@ -309,7 +309,7 @@ async function loadMovieDetails() {
   let response = await getMovieDetails(route.params.id as string)
   if (response) {
     movie.value = response
-    console.log('datails', movie.value)
+    // console.log('datails', movie.value)
 
     if (authStore.isAuthenticated) {
       await getFavoritesMovies()
@@ -375,14 +375,12 @@ function updateLists() {
     if (!areListsEqual(copiedArray.value, listsSelected.value)) {
       listsSelected.value.forEach(async (list) => {
         if (!copiedArray.value.some((item) => item.id === list.id)) {
-          console.log('entro')
           await addMovieToList(list.id, movie_id)
         }
       })
 
       copiedArray.value.forEach(async (list) => {
         if (!listsSelected.value.some((item) => item.id === list.id)) {
-          console.log('entro')
           await removeMovieFromList(list.id, movie_id)
         }
       })
