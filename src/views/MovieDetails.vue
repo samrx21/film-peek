@@ -344,8 +344,15 @@ async function updateFavorite(id: number, isFavorite: boolean) {
     toast.add({ severity: 'info', summary: 'Info', detail: 'Inicia sesion con TMDB para disfrutar de todas las funciones', life: 3000 })
     return
   }
-  await handleFavorite('movie', id, isFavorite)
-  await getFavoritesMovies()
+  let response = await handleFavorite('movie', id, isFavorite)
+  if (response && response.data.success) {
+    await getFavoritesMovies()
+    if (isFavorite) {
+      toast.add({ severity: 'success', summary: 'Success', detail: 'Agregado a favoritos', life: 3000 })
+    } else {
+      toast.add({ severity: 'success', summary: 'Success', detail: 'Eliminado de favoritos', life: 3000 })
+    }
+  }
 }
 
 async function updateWatchlist(id: number, isWatchlist: boolean) {
@@ -353,8 +360,15 @@ async function updateWatchlist(id: number, isWatchlist: boolean) {
     toast.add({ severity: 'info', summary: 'Info', detail: 'Inicia sesion con TMDB para disfrutar de todas las funciones', life: 3000 })
     return
   }
-  await handleWatchlist('movie', id, isWatchlist)
-  await getWatchlistMovies()
+  let response = await handleWatchlist('movie', id, isWatchlist)
+  if (response && response.data.success) {
+    await getWatchlistMovies()
+    if (isWatchlist) {
+      toast.add({ severity: 'success', summary: 'Success', detail: 'Agregado a lista de seguimiento', life: 3000 })
+    } else {
+      toast.add({ severity: 'success', summary: 'Success', detail: 'Eliminado de lista de seguimiento', life: 3000 })
+    }
+  }
 }
 
 const listsSelected = ref<ListPreview[]>([])
@@ -429,13 +443,19 @@ function handleRate() {
 }
 
 async function handleAddRating(value: number, movie_id: number) {
-  await addRating(value, movie_id)
+  let response = await addRating(value, movie_id)
+  if (response && response.data.success) {
+    toast.add({ severity: 'success', summary: 'Success', detail: 'Calificación agregada correctamente', life: 3000 })
+  }
   ratingChanged.value = true
   showRateMovie.value = false
 }
 
 async function handleDeleteRating(movie_id: number) {
-  await deleteRating(movie_id)
+  let response = await deleteRating(movie_id)
+  if (response && response.data.success) {
+    toast.add({ severity: 'success', summary: 'Success', detail: 'Calificación eliminada correctamente', life: 3000 })
+  }
   ratingChanged.value = true
   showRateMovie.value = false
 }

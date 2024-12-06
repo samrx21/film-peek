@@ -90,7 +90,6 @@ async function loadMovies(pageCurrent = 1) {
 
       case 'search':
         if (route.query.search) {
-          console.log(route.query.search)
           const response = await searchMovies(route.query.search as string, pageCurrent)
           movies.value = response.results
           totalRecords.value = response.total_results

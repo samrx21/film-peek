@@ -3,7 +3,6 @@ import type { OptionsApi, ListDetails } from '@/types'
 import axios from 'axios'
 const apiKey = import.meta.env.VITE_TMDB_TOKEN as string
 import { useAuthStore, useFavoriteStore, useWatchlistStore, useListsStore } from '@/stores'
-import { useToast } from 'primevue/usetoast'
 
 export async function handleFavorite(media_type: string, media_id: number, favorite: boolean) {
   const authStore = useAuthStore()
@@ -18,7 +17,8 @@ export async function handleFavorite(media_type: string, media_id: number, favor
     data: { media_type: media_type, media_id: media_id, favorite: favorite }
   }
 
-  await axios.request(options)
+  const response = await axios.request(options)
+  return response
 }
 
 export async function getFavoritesMovies(page: number = 1) {
@@ -48,9 +48,8 @@ export async function handleWatchlist(media_type: string, media_id: number, watc
     data: { media_type: media_type, media_id: media_id, watchlist: watchlist }
   }
 
-  await axios.request(options)
-  const toast = useToast()
-  toast.add({ severity: 'success', summary: 'Success', detail: 'Pelicula agregada para ver mas tarde' })
+  const response = await axios.request(options)
+  return response
 }
 
 export async function getWatchlistMovies(page: number = 1) {
@@ -110,8 +109,6 @@ export async function addMovieToList(list_id: number, media_id: number) {
   }
 
   await axios.request(options)
-  const toast = useToast()
-  toast.add({ severity: 'success', summary: 'Success', detail: 'Pelicula agregada a lista' })
 }
 
 export async function removeMovieFromList(list_id: number, media_id: number) {
@@ -154,9 +151,8 @@ export async function addRating(value: number, movie_id: number) {
     data: `{"value":${value}}`
   }
 
-  await axios.request(options)
-  const toast = useToast()
-  toast.add({ severity: 'success', summary: 'Success', detail: 'Calificación establecida' })
+  const response = await axios.request(options)
+  return response
 }
 
 export async function deleteRating(movie_id: number) {
@@ -171,9 +167,8 @@ export async function deleteRating(movie_id: number) {
     }
   }
 
-  await axios.request(options)
-  const toast = useToast()
-  toast.add({ severity: 'success', summary: 'Success', detail: 'Calificación eliminada' })
+  const response = await axios.request(options)
+  return response
 }
 
 export async function getAccountStates(movie_id: number) {
