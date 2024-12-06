@@ -310,6 +310,8 @@ async function loadMovieDetails() {
   if (response) {
     movie.value = response
     // console.log('datails', movie.value)
+    listsSelected.value = []
+    rating.value = 0
 
     if (authStore.isAuthenticated) {
       await getFavoritesMovies()
